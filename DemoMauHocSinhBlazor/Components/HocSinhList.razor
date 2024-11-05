@@ -1,0 +1,121 @@
+﻿@page "/hocsinh-list"
+@using DemoHocSinhShare.Entities
+@using DemoMauHocSinhBlazor.Service
+@inject HocSinhService HocSinhService
+@inject NavigationManager NavigationManager
+@inject SelectedHocSinhService SelectedHocSinhService
+
+
+<h3>Danh sách học sinh</h3>
+
+<ToastComponent @ref="toast" /> <!-- Thêm ToastComponent -->
+@if (isLoading)
+{
+    <p>Đang tải dữ liệu...</p>
+}
+else
+{
+    <ul>
+        @foreach (var hs in hocSinhs)
+        {
+            <li>
+                <input type="checkbox" @bind="hs.IsSelected" />
+                <span>@hs.TenHocSinh - @hs.Email - @hs.Tuoi tuổi</span>
+                <button @onclick="() => ViewDetails(hs.Id)">Xem Chi Tiết</button>
+                <button @onclick="() => EditHocSinh(hs.Id)">Sửa</button>
+                <button @onclick="() => ShowDeleteConfirmation(hs.Id)">Xóa</button>
+            </li>
+        }
+    </ul>
+    <button @onclick="EditSelectedHocSinhs">Chỉnh Sửa Các Học Sinh Đã Chọn</button>
+    <button @onclick="AddHocSinh">Thêm Học Sinh</button>
+}
+
+<DeleteConfirmation @ref="deleteConfirmation" OnDeleteConfirmed="DeleteHocSinh" />
+
+@code {
+    private List<HocSinh> hocSinhs;
+    private int hocSinhIdToDelete;
+    private bool isLoading = true;
+    private DeleteConfirmation deleteConfirmation;
+    private ToastComponent toast;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            hocSinhs = (await HocSinhService.GetAllHocSinhs()).ToList();
+            if (hocSinhs != null)
+            {
+                hocSinhs.ForEach(hs => hs.IsSelected = false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Lỗi khi tải dữ liệu học sinh: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ViewDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/hoc-sinh-details/{id}");
+    }
+
+    private void AddHocSinh()
+    {
+        NavigationManager.NavigateTo("/create-hocsinh");
+    }
+
+    private void EditHocSinh(int id)
+    {
+        NavigationManager.NavigateTo($"/edit-hocsinh/{id}");
+    }
+
+    private void ShowDeleteConfirmation(int id)
+    {
+        Console.WriteLine($"Button Xóa được nhấn cho học sinh với ID: {id}");
+        hocSinhIdToDelete = id;
+        deleteConfirmation.Show();
+    }
+
+    private async Task DeleteHocSinh(bool confirmed)
+    {
+        if (confirmed)
+        {
+            Console.WriteLine($"Xác nhận xóa học sinh với ID: {hocSinhIdToDelete}");
+            await HocSinhService.DeleteHocSinh(hocSinhIdToDelete);
+
+            Console.WriteLine("Đã gửi yêu cầu xóa đến API.");
+
+            hocSinhs = (await HocSinhService.GetAllHocSinhs()).ToList();
+            Console.WriteLine("Danh sách học sinh đã được cập nhật sau khi xóa.");
+
+            toast.Show("Xóa học sinh thành công!");
+        }
+        else
+        {
+            Console.WriteLine("Hủy bỏ xóa học sinh.");
+        }
+    }
+
+    private void EditSelectedHocSinhs()
+    {
+        var selectedHocSinhs = hocSinhs.Where(hs => hs.IsSelected).Select(hs => hs.Id).ToList();
+
+        if (selectedHocSinhs.Any())
+        {
+            SelectedHocSinhService.SetSelectedHocSinhIds(selectedHocSinhs);
+            NavigationManager.NavigateTo("/edit-multiple-hocsinhs");
+        }
+        else
+        {
+            Console.WriteLine("Vui lòng chọn ít nhất một học sinh để chỉnh sửa.");
+        }
+    }
+
+}

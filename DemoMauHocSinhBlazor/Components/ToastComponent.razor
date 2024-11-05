@@ -1,0 +1,21 @@
+﻿@if (isVisible)
+{
+    <div class="toast">
+        <p>@Message</p>
+        <button @onclick="Hide">Đóng</button>
+    </div>
+}
+
+@code {
+    private bool isVisible; 
+    public string Message { get; private set; } 
+
+    public void Show(string message)
+    {
+        Message = message; 
+        isVisible = true; 
+        StateHasChanged(); 
+    }
+
+    private void Hide() => isVisible = false; 
+}

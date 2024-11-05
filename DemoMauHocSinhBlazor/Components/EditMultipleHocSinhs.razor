@@ -1,0 +1,68 @@
+﻿@page "/edit-multiple-hocsinhs"
+@using DemoHocSinhShare.Entities
+@using DemoMauHocSinhBlazor.Service
+@inject SelectedHocSinhService SelectedHocSinhService
+@inject HocSinhService HocSinhService
+@inject NavigationManager NavigationManager
+
+<h3>Chỉnh Sửa Nhiều Học Sinh</h3>
+
+<ToastComponent @ref="toast" />
+
+@if (hocSinhs == null || !hocSinhs.Any())
+{
+    <p>Vui lòng chọn ít nhất một học sinh để chỉnh sửa.</p>
+}
+else
+{
+    @foreach (var hocSinh in hocSinhs)
+    {
+        <EditForm Model="@hocSinh" OnValidSubmit="() => HandleValidSubmit(hocSinh)">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div>
+                <label for="@($"TenHocSinh_{hocSinh.Id}")">Tên Học Sinh:</label>
+                <InputText id="@($"TenHocSinh_{hocSinh.Id}")" @bind-Value="hocSinh.TenHocSinh" />
+            </div>
+            <div>
+                <label for="@($"Email_{hocSinh.Id}")">Email:</label>
+                <InputText id="@($"Email_{hocSinh.Id}")" @bind-Value="hocSinh.Email" />
+            </div>
+            <div>
+                <label for="@($"Tuoi_{hocSinh.Id}")">Tuổi:</label>
+                <InputNumber id="@($"Tuoi_{hocSinh.Id}")" @bind-Value="hocSinh.Tuoi" TValue="int" />
+            </div>
+        </EditForm>
+    }
+
+    <button @onclick="ConfirmUpdate">Cập Nhật Tất Cả</button>
+}
+
+@code {
+    private List<int> selectedHocSinhIds;
+    private List<HocSinh> hocSinhs = new List<HocSinh>();
+    private ToastComponent toast;
+
+    protected override async Task OnInitializedAsync()
+    {
+        selectedHocSinhIds = SelectedHocSinhService.SelectedHocSinhIds;
+        var tasks = selectedHocSinhIds.Select(id => HocSinhService.GetHocSinhById(id));
+        hocSinhs = (await Task.WhenAll(tasks)).ToList();
+    }
+
+    private async Task HandleValidSubmit(HocSinh hocSinh)
+    {
+        await HocSinhService.UpdateHocSinh(hocSinh.Id, hocSinh);
+        toast.Show($"Cập nhật học sinh {hocSinh.TenHocSinh} thành công!");
+    }
+
+    private async Task ConfirmUpdate()
+    {
+        foreach (var hocSinh in hocSinhs)
+        {
+            await HocSinhService.UpdateHocSinh(hocSinh.Id, hocSinh);
+        }
+        toast.Show("Cập nhật tất cả học sinh thành công!");
+        NavigationManager.NavigateTo("/hocsinh-list");
+    }
+}

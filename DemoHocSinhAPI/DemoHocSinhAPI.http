@@ -1,0 +1,6 @@
+@DemoHocSinhAPI_HostAddress = http://localhost:5108
+
+GET {{DemoHocSinhAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

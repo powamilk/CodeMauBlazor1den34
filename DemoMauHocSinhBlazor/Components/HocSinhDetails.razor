@@ -1,0 +1,37 @@
+﻿@page "/hoc-sinh-details/{id:int}"
+@using DemoHocSinhShare.Entities
+@using DemoMauHocSinhBlazor.Service
+@inject HocSinhService HocSinhService
+@inject NavigationManager NavigationManager
+
+<h3>Chi tiết học sinh</h3>
+
+@if (hocSinh == null)
+{
+    <p>Đang tải dữ liệu...</p>
+}
+else
+{
+    <div>
+        <p><strong>Tên:</strong> @hocSinh.TenHocSinh</p>
+        <p><strong>Email:</strong> @hocSinh.Email</p>
+        <p><strong>Tuổi:</strong> @hocSinh.Tuoi tuổi</p>
+        <!-- Thêm các thuộc tính khác nếu có -->
+    </div>
+    <button @onclick="BackToList">Quay lại danh sách</button>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+    private HocSinh hocSinh;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hocSinh = await HocSinhService.GetHocSinhById(id);
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/hocsinh-list");
+    }
+}
