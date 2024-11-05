@@ -1,7 +1,9 @@
 ﻿using DemoHocSinhAPI.Repositories;
+using DemoHocSinhShare;
 using DemoHocSinhShare.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DemoHocSinhAPI.Controllers
 {
@@ -10,10 +12,12 @@ namespace DemoHocSinhAPI.Controllers
     public class HocSinhController : ControllerBase
     {
         private readonly IHocSinhRepository _repository;
+        private readonly HocSinhDbContext _context;
 
-        public HocSinhController(IHocSinhRepository repository)
+        public HocSinhController(IHocSinhRepository repository, HocSinhDbContext context)
         {
             _repository = repository;
+            _context = context;
         }
 
         [HttpGet]
@@ -42,6 +46,31 @@ namespace DemoHocSinhAPI.Controllers
         {
             await _repository.DeleteHocSinh(id);
             return NoContent();
+        }
+
+        [HttpPut("sua-nhieu")]
+        public async Task<IActionResult> UpdateNhieuHocSinh([FromBody] List<HocSinh> hocSinhs)
+        {
+            _context.HocSinhs.UpdateRange(hocSinhs);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpDelete("xoa-nhieu")]
+        public async Task<IActionResult> DeleteNhieuHocSinh([FromBody] List<int> hocSinhIds)
+        {
+            var hocSinhDeletes = await _context.HocSinhs.Where(hs => hocSinhIds.Contains(hs.Id)).ToListAsync();
+            _context.HocSinhs.RemoveRange(hocSinhDeletes);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpPost("them-nhieu")]
+        public async Task<IActionResult> AddNhieuHocSinh([FromBody] List<HocSinh> hocSinhs)
+        {
+            await _context.HocSinhs.AddRangeAsync(hocSinhs);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction("GetHocSinh", new { id = hocSinhs.First().Id }, hocSinhs);
         }
     }
 }

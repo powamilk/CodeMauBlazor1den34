@@ -58,10 +58,7 @@ else
 
     private async Task ConfirmUpdate()
     {
-        foreach (var hocSinh in hocSinhs)
-        {
-            await HocSinhService.UpdateHocSinh(hocSinh.Id, hocSinh);
-        }
+        await HocSinhService.UpdateNhieuHocSinh(hocSinhs);
         toast.Show("Cập nhật tất cả học sinh thành công!");
         NavigationManager.NavigateTo("/hocsinh-list");
     }

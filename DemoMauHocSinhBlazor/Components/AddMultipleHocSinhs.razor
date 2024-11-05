@@ -1,0 +1,59 @@
+﻿@page "/add-multiple-hocsinhs"
+@using DemoHocSinhShare.Entities
+@using DemoMauHocSinhBlazor.Service
+@inject SelectedHocSinhService SelectedHocSinhService
+@inject HocSinhService HocSinhService
+@inject NavigationManager NavigationManager
+
+<h3>Them Nhieu Hoc Sinh</h3>
+
+<EditForm Model="@hocSinhs" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    @foreach (var hocSinh in hocSinhs)
+    {
+        <div class="hocSinhForm">
+            <h4>Hoc Sinh @(hocSinhs.IndexOf(hocSinh) + 1)</h4>
+            <div>
+                <label for="TenHocSinh">Tên Học Sinh:</label>
+                <InputText id="TenHocSinh" @bind-Value="hocSinh.TenHocSinh" />
+                <ValidationMessage For="@(() => hocSinh.TenHocSinh)" />
+            </div>
+
+            <div>
+                <label for="Email">Email:</label>
+                <InputText id="Email" @bind-Value="hocSinh.Email" />
+                <ValidationMessage For="@(() => hocSinh.Email)" />
+            </div>
+
+            <div>
+                <label for="Tuoi">Tuổi:</label>
+                <InputNumber id="Tuoi" @bind-Value="hocSinh.Tuoi" />
+                <ValidationMessage For="@(() => hocSinh.Tuoi)" />
+            </div>
+        </div>
+    }
+    <button type="button" @onclick=AddNewHocSinh>Them Hoc Sinh</button>
+    <button type="submit">Luu Danh Sach</button>
+</EditForm>
+
+@code {
+    private List<HocSinh> hocSinhs = new List<HocSinh>();
+
+    protected override void OnInitialized()
+    {
+        AddNewHocSinh();
+    }
+
+    private void AddNewHocSinh()
+    {
+        hocSinhs.Add(new HocSinh());
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await HocSinhService.AddNhieuHocSinh(hocSinhs);
+        NavigationManager.NavigateTo("/hocsinh-list");
+    }
+}

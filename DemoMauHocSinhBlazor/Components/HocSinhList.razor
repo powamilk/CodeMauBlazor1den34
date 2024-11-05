@@ -27,10 +27,12 @@ else
             </li>
         }
     </ul>
+    <button @onclick="ShowDeleteNhieuHocSinh" disabled="@(!hocSinhs.Any(h => h.IsSelected))">Xoa Nhieu Hoc Sinh</button>
     <button @onclick="EditSelectedHocSinhs">Chỉnh Sửa Các Học Sinh Đã Chọn</button>
     <button @onclick="AddHocSinh">Thêm Học Sinh</button>
+    <button @onclick="ThemNhieuHocSinh">Them Nhieu Hoc Sinh</button>
 }
-
+<DeleteConfirmation @ref="deleteNhieuHocSinh" OnDeleteConfirmed="DeleteNhieuHocSinh" />
 <DeleteConfirmation @ref="deleteConfirmation" OnDeleteConfirmed="DeleteHocSinh" />
 
 @code {
@@ -38,6 +40,7 @@ else
     private int hocSinhIdToDelete;
     private bool isLoading = true;
     private DeleteConfirmation deleteConfirmation;
+    private DeleteConfirmation deleteNhieuHocSinh;
     private ToastComponent toast;
 
     protected override async Task OnInitializedAsync()
@@ -116,6 +119,34 @@ else
         {
             Console.WriteLine("Vui lòng chọn ít nhất một học sinh để chỉnh sửa.");
         }
+    }
+
+    private void ShowDeleteNhieuHocSinh()
+    {
+        if(hocSinhs.Any(h => h.IsSelected))
+        {
+            deleteNhieuHocSinh.Show();
+        }
+        else
+        {
+            toast.Show("Chua co hs de xoa");
+        }
+    }
+
+    private async Task DeleteNhieuHocSinh(bool confirmed)
+    {
+        if(confirmed)
+        {
+            var selectedIds = hocSinhs.Where(hs => hs.IsSelected).Select(hs => hs.Id).ToList();
+            await HocSinhService.DeleteNhieuHocSinhs(selectedIds);
+            hocSinhs.RemoveAll(hs => selectedIds.Contains(hs.Id));
+            toast.Show("Xoa Nhieu Hoc Sinh Thanh Cong");
+        }
+    }
+
+    private void ThemNhieuHocSinh()
+    {
+        NavigationManager.NavigateTo("/add-multiple-hocsinhs");
     }
 
 }
